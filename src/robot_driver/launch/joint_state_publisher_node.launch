@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="robot_driver" type="joint_state_publisher_node.py" name="joint_state_publisher_node" output="screen"/>
+</launch>
