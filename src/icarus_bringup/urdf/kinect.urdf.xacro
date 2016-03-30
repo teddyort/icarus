@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<robot name="sensor_kinect" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="M_PI" value="3.14159" />
+<!--  <xacro:property name="cam_px" value="-1.2" />
+  <xacro:property name="cam_py" value="-0.25" />
+  <xacro:property name="cam_pz" value="0.4" />-->
+  <xacro:property name="cam_px" value="-1.8" />
+  <xacro:property name="cam_py" value="-0.35" />
+  <xacro:property name="cam_pz" value="0.2" />
+  <xacro:property name="cam_or" value="0.0" />
+  <xacro:property name="cam_op" value="${5.0*M_PI/180}" />
+  <xacro:property name="cam_oy" value="0.244" />
+  <xacro:property name="table_thickness" value="0.05" />
+  <xacro:property name="table_length" value="2.5" />
+  <xacro:property name="table_width" value="1.0" />
+  <xacro:property name="kinect_height" value="0.073" />
+
+  <link name="base_link" />
+
+  <joint name="base_to_kinect" type="fixed">
+    <origin xyz="${cam_px} ${cam_py} ${cam_pz}" rpy="${cam_or} ${cam_op} ${cam_oy}"/>
+    <parent link="base_link"/>
+    <child link="kinect" />
+  </joint>
+
+  <link name="kinect" />
+
+  <joint name="kinect_to_skeleton_frame" type="fixed">
+    <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}" />
+    <parent link="kinect" />
+    <child link="skeleton_frame" />
+  </joint>
+  <link name="skeleton_frame" />
+
+  <joint name="kinect_to_camera" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="kinect"/>
+    <child link="camera"/>
+  </joint>
+
+  <link name="camera">
+    <visual>
+     <origin xyz="0 0 0" rpy="0 0 ${M_PI/2}"/>
+      <geometry>
+       <mesh filename="package://icarus_bringup/urdf/meshes/kinect.dae"/>
+      </geometry>
+    </visual>
+	  <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+	    <geometry>
+	      <box size="0.07271 0.27794 ${kinect_height}"/>
+	    </geometry>
+	  </collision>
+    <inertial>
+      <mass value="0.001" />
+      <origin xyz="0 0 0" />
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+               iyy="0.0001" iyz="0.0"
+               izz="0.0001" />
+    </inertial>
+  </link>
+	
+  <joint name="base_to_table" type="fixed">
+    <origin xyz="0 0 0" />
+    <parent link="base_link" />
+    <child link="table" />
+  </joint>
+
+  <link name="table">
+    <visual>
+      <origin xyz="${-table_length/2} 0 ${-table_thickness/2}" />
+      <geometry>
+        <box size="${table_length} ${table_width} ${table_thickness}"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="0.7 0.8 0.137 1.0" />
+      </material>
+    </visual>
+  </link>
+
+    <joint name="base_to_support" type="fixed">
+    <origin xyz="${cam_px} ${cam_py} ${cam_pz/2-kinect_height/4}" />
+    <parent link="base_link" />
+    <child link="support" />
+  </joint>
+
+  <link name="support">
+    <visual>
+      <origin xyz="0 0 0" />
+      <geometry>
+        <box size="0.2 0.3 ${cam_pz-kinect_height/2}"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.15 0.15 0.67 1.0" />
+      </material>
+    </visual>
+  </link>
+
+
+</robot>
