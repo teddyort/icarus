@@ -1,0 +1,8 @@
+<launch>
+
+    <!-- Launch the meta driver -->
+    <include file="$(find robot_driver)/launch/meta_driver.launch" />
+
+    <remap from="/joint_state_publisher_node/motor_states" to="/motor_states/robo_port" />
+    <include file="$(find robot_driver)/launch/joint_state_publisher_node.launch" />
+</launch>
