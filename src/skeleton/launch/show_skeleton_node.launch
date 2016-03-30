@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="sim" default="false" doc="True for playing skeleton data from a bag file" />
+    <arg name="gui" default="true" doc="True to display a gui for visualizing the skeleton" />
+
+	<param if="$(arg sim)" name="/use_sim_time" value="$(arg sim)" />
+
+    <node pkg="skeleton" type="show_skeleton_node.py" name="show_skeleton_node" output="screen"/>
+
+    <include unless="$(arg sim)" file="$(find rosserial_server)/launch/socket.launch"/>
+
+    <node if="$(arg gui)" pkg="rqt_gui" name="rqt_gui" type="rqt_gui" />
+    <!--<node pkg="rviz" type="rviz" name="rviz" args="-d $(find icarus)/rviz/frontend.rviz" output="screen"/>-->
+</launch>
