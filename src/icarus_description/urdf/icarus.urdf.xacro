@@ -49,7 +49,7 @@
         </visual>
     </link>
 
-    <joint name="base_to_link1" type="revolute">
+    <joint name="joint1" type="revolute">
         <axis xyz="0 0 1" rpy="0 0 ${M_PI}"/>
         <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="0.5" />
         <origin xyz="0 0 ${base_height}" />
@@ -67,10 +67,10 @@
         </visual>
     </link>
 
-    <joint name="link1_to_link2" type="revolute">
-        <axis xyz="0 1 0" />
+    <joint name="joint2" type="revolute">
+        <axis xyz="0 -1 0" />
         <limit effort="1000.0" lower="${-3/4*M_PI}" upper="${3/4*M_PI}" velocity="0.5" />
-        <origin xyz="0 0 ${link1_length}" />
+        <origin xyz="0 0 ${link1_length}" rpy="0 ${M_PI/2} 0"/>
         <parent link="link1" />
         <child link="link2" />
     </joint>
@@ -85,8 +85,8 @@
         </visual>
     </link>
 
-    <joint name="link2_to_link3" type="revolute">
-        <axis xyz="0 1 0" />
+    <joint name="joint3" type="revolute">
+        <axis xyz="0 -1 0" />
         <limit effort="1000.0" lower="${-3/4*M_PI}" upper="${3/4*M_PI}" velocity="0.5" />
         <origin xyz="0 0 ${link2_length}" />
         <parent link="link2" />
@@ -144,7 +144,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 ${M_PI/2}"/>
             <geometry>
-                <mesh filename="package://icarus_bringup/urdf/meshes/kinect.dae"/>
+                <mesh filename="package://icarus_description/urdf/meshes/kinect.dae"/>
             </geometry>
         </visual>
         <collision>

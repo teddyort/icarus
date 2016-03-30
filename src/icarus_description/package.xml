@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>icarus_bringup</name>
+  <name>icarus_description</name>
   <version>0.0.0</version>
-  <description>The icarus_bringup package</description>
+  <description>The icarus_description package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
