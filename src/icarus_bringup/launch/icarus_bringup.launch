@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 <launch>
-	<param name="robot_description" command="$(find xacro)/xacro '$(find icarus_bringup)/urdf/kinect.urdf.xacro'" />
+    <arg name="gui" default="true" />
+    <arg name="rvizconfig" default="$(find icarus_bringup)/rviz/frontend.rviz" />
 
+	<param name="robot_description" command="$(find xacro)/xacro '$(find icarus_bringup)/urdf/icarus.urdf.xacro'" />
+    <param name="use_gui" value="$(arg gui)" />
+
+    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" />
 	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+    <node if="$(arg gui)" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" name="rviz"/>
 </launch>

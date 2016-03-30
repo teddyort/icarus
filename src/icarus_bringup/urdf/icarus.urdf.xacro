@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<robot name="icarus" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:property name="M_PI" value="3.14159" />
+
+    <!-- Robot Params -->
+    <xacro:property name="base_width" value="0.04" />
+    <xacro:property name="base_height" value="0.17" />
+    <xacro:property name="link_radius" value="0.015" />
+    <xacro:property name="link1_length" value="0.05" />
+    <xacro:property name="link2_length" value="0.22" />
+    <xacro:property name="link3_length" value="0.22" />
+
+    <!-- Kinect Params -->
+    <!--  <xacro:property name="cam_px" value="-1.2" />
+      <xacro:property name="cam_py" value="-0.25" />
+      <xacro:property name="cam_pz" value="0.4" />-->
+    <xacro:property name="cam_px" value="-1.8" />
+    <xacro:property name="cam_py" value="-0.35" />
+    <xacro:property name="cam_pz" value="0.2" />
+    <xacro:property name="cam_or" value="0.0" />
+    <xacro:property name="cam_op" value="${5.0*M_PI/180}" />
+    <xacro:property name="cam_oy" value="0.244" />
+    <xacro:property name="kinect_height" value="0.073" />
+
+    <!-- Table Params -->
+    <xacro:property name="table_thickness" value="0.05" />
+    <xacro:property name="table_length" value="2.5" />
+    <xacro:property name="table_width" value="1.0" />
+
+
+    <!-- Macros -->
+    <xacro:macro name="material_color" params="name rgba">
+        <material name="${name}">
+            <color rgba="${rgba}" />
+        </material>
+    </xacro:macro>
+
+    <xacro:material_color name="default" rgba="0.7 0.7 0.7 1.0" />
+
+    <!-- Robot Arm -->
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 ${base_height/2}" />
+            <geometry>
+                <box size="${base_width} ${base_width} ${base_height}" />
+            </geometry>
+            <material name="default" />
+        </visual>
+    </link>
+
+    <joint name="base_to_link1" type="revolute">
+        <axis xyz="0 0 1" rpy="0 0 ${M_PI}"/>
+        <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="0.5" />
+        <origin xyz="0 0 ${base_height}" />
+        <parent link="base_link" />
+        <child link="link1" />
+    </joint>
+
+    <link name="link1">
+        <visual>
+            <origin xyz="0 0 ${link1_length/2}" />
+            <geometry>
+                <box size="0.04 0.04 ${link1_length}" />
+            </geometry>
+            <xacro:material_color name="black" rgba="0.2 0.2 0.2 1.0" />
+        </visual>
+    </link>
+
+    <joint name="link1_to_link2" type="revolute">
+        <axis xyz="0 1 0" />
+        <limit effort="1000.0" lower="${-3/4*M_PI}" upper="${3/4*M_PI}" velocity="0.5" />
+        <origin xyz="0 0 ${link1_length}" />
+        <parent link="link1" />
+        <child link="link2" />
+    </joint>
+
+    <link name="link2">
+        <visual>
+            <origin xyz="0 0 ${link2_length/2}" />
+            <geometry>
+                <cylinder radius="${link_radius}" length="${link2_length}" />
+            </geometry>
+            <material name="black" />
+        </visual>
+    </link>
+
+    <joint name="link2_to_link3" type="revolute">
+        <axis xyz="0 1 0" />
+        <limit effort="1000.0" lower="${-3/4*M_PI}" upper="${3/4*M_PI}" velocity="0.5" />
+        <origin xyz="0 0 ${link2_length}" />
+        <parent link="link2" />
+        <child link="link3" />
+    </joint>
+
+    <link name="link3">
+        <visual>
+            <origin xyz="0 0 ${link3_length/2}" />
+            <geometry>
+                <cylinder radius="${link_radius}" length="${link3_length}" />
+            </geometry>
+            <material name="black" />
+        </visual>
+    </link>
+
+    <joint name="link3_to_ee_link" type="fixed">
+        <origin xyz="0 0 ${link3_length}" />
+        <parent link="link3" />
+        <child link="ee_link" />
+    </joint>
+
+    <link name="ee_link">
+        <visual>
+            <origin xyz="0 0 0" />
+            <geometry>
+                <sphere radius="${link_radius}" />
+            </geometry>
+        </visual>
+    </link>
+
+    <!-- Kinect -->
+    <joint name="base_to_kinect" type="fixed">
+        <origin xyz="${cam_px} ${cam_py} ${cam_pz}" rpy="${cam_or} ${cam_op} ${cam_oy}"/>
+        <parent link="base_link"/>
+        <child link="kinect" />
+    </joint>
+
+    <link name="kinect" />
+
+    <joint name="kinect_to_skeleton_frame" type="fixed">
+        <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}" />
+        <parent link="kinect" />
+        <child link="skeleton_frame" />
+    </joint>
+    <link name="skeleton_frame" />
+
+    <joint name="kinect_to_camera" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <parent link="kinect"/>
+        <child link="camera"/>
+    </joint>
+
+    <link name="camera">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 ${M_PI/2}"/>
+            <geometry>
+                <mesh filename="package://icarus_bringup/urdf/meshes/kinect.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.07271 0.27794 ${kinect_height}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.001" />
+            <origin xyz="0 0 0" />
+            <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                     iyy="0.0001" iyz="0.0"
+                     izz="0.0001" />
+        </inertial>
+    </link>
+
+    <!-- Table -->
+    <joint name="base_to_table" type="fixed">
+        <origin xyz="0 0 0" />
+        <parent link="base_link" />
+        <child link="table" />
+    </joint>
+
+    <link name="table">
+        <visual>
+            <origin xyz="${-table_length/2} 0 ${-table_thickness/2}" />
+            <geometry>
+                <box size="${table_length} ${table_width} ${table_thickness}"/>
+            </geometry>
+            <material name="yellow">
+                <color rgba="0.7 0.8 0.137 1.0" />
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_support" type="fixed">
+        <origin xyz="${cam_px} ${cam_py} ${cam_pz/2-kinect_height/4}" />
+        <parent link="base_link" />
+        <child link="support" />
+    </joint>
+
+    <link name="support">
+        <visual>
+            <origin xyz="0 0 0" />
+            <geometry>
+                <box size="0.2 0.3 ${cam_pz-kinect_height/2}"/>
+            </geometry>
+            <material name="blue">
+                <color rgba="0.15 0.15 0.67 1.0" />
+            </material>
+        </visual>
+    </link>
+
+
+</robot>
