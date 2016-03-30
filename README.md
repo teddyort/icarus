@@ -1,0 +1,1 @@
+The Icarus robot assists workers with complex tasks by utilizing sensors to predict task requirements.
