@@ -1,0 +1,8 @@
+<launch>
+    <!-- Launch the driver -->
+    <include file="$(find icarus)/launch/robot_driver.launch" />
+
+    <!-- Launch the robot description-->
+    <remap from="/joint_states" to="/joint_state_publisher_node/joint_states"/>
+    <include file="$(find icarus_description)/launch/icarus_description.launch"/>
+</launch>
