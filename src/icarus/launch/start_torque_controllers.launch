@@ -1,0 +1,9 @@
+<launch>
+    <!-- Start elbow joint controller -->
+    <rosparam file="$(find icarus)/configs/arm.yaml" command="load"/>
+    <node name="joint3_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --port robo_port
+                joint3_controller"
+          output="screen"/>
+</launch>

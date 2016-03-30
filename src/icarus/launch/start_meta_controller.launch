@@ -1,0 +1,24 @@
+<launch>
+    <!-- Start arm joint controllers -->
+    <rosparam file="$(find icarus)/configs/arm.yaml" command="load"/>
+    <node name="controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --port robo_port
+                joint1_controller                       
+                joint2_controller
+                joint3_controller
+                "
+          output="screen"/>
+          
+  <!-- Start meta controller -->
+    <rosparam file="$(find icarus)/configs/arm_meta.yaml" command="load"/>
+    <node name="controller_spawner_meta" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --type=meta
+                arm_controller
+                joint1_controller
+                joint2_controller
+                joint3_controller
+                "
+          output="screen"/>
+</launch>
