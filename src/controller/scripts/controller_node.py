@@ -58,7 +58,7 @@ def controller():
     sub_load = rospy.Subscriber("/joint2_controller/state", JointState, load_callback)
 
     #Create the arm class for controlling dynamixels
-    arm = RobotDriver.Driver('arm')
+    arm = RobotDriver.Driver('arm', 0.22, 0.22, 0.22)
 
     rate = rospy.Rate(20)
     while not rospy.is_shutdown():
@@ -68,6 +68,7 @@ def controller():
         elif state == "Start":
             rospy.loginfo("State: Start")
             arm.move_joint([0.0,0.5, -2.0],2)
+            #arm.move_cartesian([0.20, 0.0, 0.11], 2)
             pub_grip.publish(grip_open)
             pub_wrist.publish(0)
             rospy.sleep(1)
