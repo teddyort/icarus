@@ -15,9 +15,9 @@ class Kinematics(object):
         L1, L2, = self.L1, self.L2
         q1, q2, q3 = q
         rho = L1*cos(q2)+L2*cos(q2+q3)
-        x = rho*sin(q1)
-        y = L1*sin(q2)+L2*sin(q2+q3)
-        z = rho*cos(q1)
+        x = rho*cos(q1)
+        y = rho*sin(q1)
+        z = L1*sin(q2)+L2*sin(q2+q3)
         return [x,y,z]
 
     # Compute the inverse kinematics [q1, q2, q3] for the robot at a given cartesian position [x,y,z]
@@ -26,10 +26,10 @@ class Kinematics(object):
         x,y,z = p
 
         L = sqrt(x**2+y**2+z**2)
-        a = atan2(y, sqrt(x**2+y**2))
+        a = atan2(z, sqrt(y**2+z**2))
         b = acos((L1**2-L2**2+L**2)/(2*L1*L))
         c = pi-acos((L1**2 + L2**2 - L**2) / (2*L1*L2))
-        q1 = atan2(x,z)
+        q1 = atan2(y,x)
         q2 = a+b    # a-b for elbow up
         q3 = -c     # c for elbow up
         return [q1, q2, q3]
