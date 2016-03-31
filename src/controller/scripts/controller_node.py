@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import rospy, actionlib
+import rospy
 from std_msgs.msg import Float32, Bool
-from trajectory_msgs.msg import JointTrajectoryPoint
-from control_msgs.msg import JointTrajectoryAction, JointTrajectoryGoal, FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from dynamixel_msgs.msg import JointState
+from robot_driver import RobotDriver
 
 # Default globals
 state = "Init"
@@ -27,24 +26,6 @@ dispense_wait_time = 3
 solder_dispense_time = 5
 load_threshold = 0.006
 noload_threshold = 0.001
-
-class Joint:
-        def __init__(self, motor_name):
-            self.name = motor_name           
-            self.jta = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-            rospy.loginfo('Waiting for joint trajectory action')
-            self.jta.wait_for_server()
-            rospy.loginfo('Found joint trajectory action!')
-
-            
-        def move_joint(self, angles, t):
-            goal = FollowJointTrajectoryGoal()                  
-            goal.trajectory.joint_names = ['joint1', 'joint2', 'joint3']
-            point = JointTrajectoryPoint()
-            point.positions = angles
-            point.time_from_start = rospy.Duration(t)                   
-            goal.trajectory.points.append(point)
-            self.jta.send_goal_and_wait(goal)
 
 def temp_callback(msg):
     global temp
@@ -77,7 +58,7 @@ def controller():
     sub_load = rospy.Subscriber("/joint2_controller/state", JointState, load_callback)
 
     #Create the arm class for controlling dynamixels
-    arm = Joint('arm')
+    arm = RobotDriver.Driver('arm')
 
     rate = rospy.Rate(20)
     while not rospy.is_shutdown():
