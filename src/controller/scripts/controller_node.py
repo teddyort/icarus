@@ -24,9 +24,9 @@ class ControllerNode(object):
     def __init__(self):
         self.node_name = "controller_node"
         # Setup Params
-        self.L0     = self.setupParam("~L0",0.22) # in meters
-        self.L1     = self.setupParam("~L1",0.22) # in meters
-        self.L2     = self.setupParam("~L2",0.22) # in meters
+        self.L0     = self.setupParam("/icarus/L0",0.22) # in meters
+        self.L1     = self.setupParam("/icarus/L1",0.22) # in meters
+        self.L2     = self.setupParam("/icarus/L2",0.22) # in meters
         
         # Init self.state variables
         self.state = "Init"

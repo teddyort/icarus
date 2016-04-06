@@ -1,4 +1,6 @@
 <launch>
+    <arg name="param_file_name" value="default" />
+
     <!-- Start arm joint controllers -->
     <rosparam file="$(find icarus)/configs/arm.yaml" command="load"/>
     <node name="controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
@@ -21,4 +23,6 @@
                 joint3_controller
                 "
           output="screen"/>
+    <!-- Load robot link parameters -->
+    <rosparam command="load" file="$(find icarus)/configs/$(arg param_file_name).yaml" ns="icarus"/>
 </launch>
