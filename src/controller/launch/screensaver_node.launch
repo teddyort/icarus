@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="controller" type="screensaver_node.py" name="screensaver_node" output="screen"/>
+</launch>
