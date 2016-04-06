@@ -1,4 +1,8 @@
 <launch>
+    <arg name="pkg_name" value="controller"/>
+    <arg name="node_name" default="controller_node"/>
+
     <!-- Start the controller -->
-    <node name="controller" pkg="controller" type="controller_node.py" output="screen"/>
+    <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+    </node>
 </launch>
