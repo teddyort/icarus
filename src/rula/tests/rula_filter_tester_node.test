@@ -1,0 +1,9 @@
+<launch>
+    <!-- Run the node -->
+    <include file="$(find rula)/launch/rula_filter_node.launch" />
+
+    <!-- Run unit test -->
+    <remap from="rula_filter_tester_node/raw_score" to="rula_filter_node/raw_score" />
+    <remap from="rula_filter_tester_node/filtered_score" to="rula_filter_node/filtered_score" />
+    <test test-name="rula_filter_tester_node" pkg="rula" type="rula_filter_tester_node.py"/>
+</launch>
