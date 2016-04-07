@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="rula" type="rula_filter_node.py" name="rula_filter_node" output="screen"/>
+</launch>
