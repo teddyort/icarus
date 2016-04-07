@@ -4,6 +4,8 @@
     <xacro:property name="M_PI" value="3.14159" />
 
     <!-- Robot Params -->
+    <xacro:property name="base_xyz" value="-0.2794 0.2111375 0" />
+    <xacro:property name="base_rpy" value="0 0 -0.523599"/>
     <xacro:property name="base_width" value="0.04" />
     <xacro:property name="base_height" value="0.17" />
     <xacro:property name="link_radius" value="0.015" />
@@ -15,18 +17,18 @@
     <!--  <xacro:property name="cam_px" value="-1.2" />
       <xacro:property name="cam_py" value="-0.25" />
       <xacro:property name="cam_pz" value="0.4" />-->
-    <xacro:property name="cam_px" value="-1.8" />
-    <xacro:property name="cam_py" value="-0.35" />
-    <xacro:property name="cam_pz" value="0.2" />
+    <xacro:property name="cam_px" value="-1.5" />
+    <xacro:property name="cam_py" value="-0.3794125" />
+    <xacro:property name="cam_pz" value="0.384175" />
     <xacro:property name="cam_or" value="0.0" />
-    <xacro:property name="cam_op" value="${5.0*M_PI/180}" />
+    <xacro:property name="cam_op" value="${10.0*M_PI/180}" />
     <xacro:property name="cam_oy" value="0.244" />
     <xacro:property name="kinect_height" value="0.073" />
 
     <!-- Table Params -->
     <xacro:property name="table_thickness" value="0.05" />
     <xacro:property name="table_length" value="2.5" />
-    <xacro:property name="table_width" value="1.0" />
+    <xacro:property name="table_width" value="0.911225" />
 
 
     <!-- Macros -->
@@ -37,6 +39,15 @@
     </xacro:macro>
 
     <xacro:material_color name="default" rgba="0.7 0.7 0.7 1.0" />
+
+    <!-- World -->
+    <link name="world" />
+
+    <joint name="world_to_base" type="fixed">
+        <origin xyz="${base_xyz}" rpy="${base_rpy}"/>
+        <parent link="world"/>
+        <child link="base_link" />
+    </joint>
 
     <!-- Robot Arm -->
     <link name="base_link">
@@ -119,9 +130,9 @@
     </link>
 
     <!-- Kinect -->
-    <joint name="base_to_kinect" type="fixed">
+    <joint name="world_to_kinect" type="fixed">
         <origin xyz="${cam_px} ${cam_py} ${cam_pz}" rpy="${cam_or} ${cam_op} ${cam_oy}"/>
-        <parent link="base_link"/>
+        <parent link="world"/>
         <child link="kinect" />
     </joint>
 
@@ -163,9 +174,9 @@
     </link>
 
     <!-- Table -->
-    <joint name="base_to_table" type="fixed">
+    <joint name="world_to_table" type="fixed">
         <origin xyz="0 0 0" />
-        <parent link="base_link" />
+        <parent link="world" />
         <child link="table" />
     </joint>
 
@@ -181,9 +192,9 @@
         </visual>
     </link>
 
-    <joint name="base_to_support" type="fixed">
+    <joint name="world_to_support" type="fixed">
         <origin xyz="${cam_px} ${cam_py} ${cam_pz/2-kinect_height/4}" />
-        <parent link="base_link" />
+        <parent link="world" />
         <child link="support" />
     </joint>
 
