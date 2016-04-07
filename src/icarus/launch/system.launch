@@ -1,0 +1,7 @@
+<launch>
+    <!-- Icarus Bringup-->
+    <include file="$(find icarus)/launch/icarus_bringup.launch"/>
+
+    <!-- Skeleton -->
+    <include file="$(find skeleton)/launch/show_skeleton_node.launch" />
+</launch>
