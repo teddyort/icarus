@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="sim" default="false" doc="True if there is no robot, launches a joint_state_publisher to simulate one"/>
-    <arg name="gui" default="true" doc="True if rviz should open to view the robot" />
+    <arg name="gui" default="false" doc="True if rviz should open to view the robot" />
     <arg name="rvizconfig" default="$(find icarus_description)/rviz/frontend.rviz" />
 
 	<param name="robot_description" command="$(find xacro)/xacro '$(find icarus_description)/urdf/icarus.urdf.xacro'" />
