@@ -1,8 +1,12 @@
 <launch>
+    <arg name="gui" default="false" doc="True if rviz should open to view the robot" />
+
     <!-- Launch the driver -->
     <include file="$(find icarus)/launch/robot_driver.launch" />
 
     <!-- Launch the robot description-->
     <remap from="/joint_states" to="/joint_state_publisher_node/joint_states"/>
-    <include file="$(find icarus_description)/launch/icarus_description.launch"/>
+    <include file="$(find icarus_description)/launch/icarus_description.launch">
+        <arg name="gui" value="$(arg gui)" />
+    </include>
 </launch>
