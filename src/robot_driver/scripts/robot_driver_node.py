@@ -3,6 +3,7 @@ import rospy
 from robot_driver import Kinematics
 from robot_driver.srv import MoveCartesian, MoveJoint
 from sensor_msgs.msg import JointState
+from geometry_msgs.msg import PointStamped
 import tf
 import actionlib
 from trajectory_msgs.msg import JointTrajectoryPoint
@@ -26,6 +27,9 @@ class RobotDriverNode(object):
         # Setup the subscriber
         self.sub_joints = rospy.Subscriber("~joint_states", JointState, self.jointsCallback)
         self.msg_joint_state = JointState()
+
+        # Setup the listener
+        self.tf = tf.TransformListener()
 
         # Setup the action server
         self.name = 'arm'
@@ -51,9 +55,9 @@ class RobotDriverNode(object):
 
     def handle_move_cartesian(self, msg_cart):
         point = msg_cart.point
-        point.header.frame_id = msg_cart.header.frame_id if not point.header.frame_id == "" else "base_link"
-        tros = tf.TransformerROS()
-        dest = tros.transformPoint("base_link", point)
+        point.header.frame_id = point.header.frame_id if not point.header.frame_id == "" else "/base_link"
+
+        dest = self.tf.transformPoint("/base_link", point)
         self.move_cartesian((dest.point.x, dest.point.y, dest.point.z), self.msg_joint_state.position, self.max_vel)
         return True
 
