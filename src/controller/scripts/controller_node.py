@@ -3,7 +3,8 @@
 import rospy
 from std_msgs.msg import Float32, Bool
 from dynamixel_msgs.msg import JointState
-from robot_driver import RobotDriver
+from robot_driver.srv import MoveCartesian
+from geometry_msgs.msg import PointStamped
 
 # Default globals
 long_term_alpha = 0.1
@@ -23,10 +24,6 @@ noload_threshold = 0.001
 class ControllerNode(object):
     def __init__(self):
         self.node_name = "controller_node"
-        # Setup Params
-        self.L0     = self.setupParam("/icarus/L0",0.22) # in meters
-        self.L1     = self.setupParam("/icarus/L1",0.22) # in meters
-        self.L2     = self.setupParam("/icarus/L2",0.22) # in meters
         
         # Init self.state variables
         self.state = "Init"
@@ -36,7 +33,7 @@ class ControllerNode(object):
         self.joint2_load = 0
         self.joint2_avg = 0
 
-        #Create publishers and subscribers
+        # Create publishers and subscribers
         self.pub_wrist = rospy.Publisher('~wrist_cmd', Float32, queue_size=10)
         self.pub_grip = rospy.Publisher('~grip_cmd', Float32, queue_size=10)
         self.pub_feeder = rospy.Publisher('~feeder_cmd', Bool, queue_size=10)
@@ -44,6 +41,17 @@ class ControllerNode(object):
         self.sub_holder = rospy.Subscriber("~solder/holder", Bool, self.holder_callback)
         self.sub_range = rospy.Subscriber("~range", Float32, self.range_callback)
         self.sub_load = rospy.Subscriber("/joint2_controller/self.state", JointState, self.load_callback)
+
+        # Setup the service client for move_cartesian
+        # Wait for service server
+        rospy.loginfo("[%s] Waiting for robot_driver move_cartesian service", self.node_name)
+        move_cart_name = "/robot_driver_node/move_cartesian"
+        rospy.wait_for_service(move_cart_name)
+
+        self.move_cart = rospy.ServiceProxy(move_cart_name, MoveCartesian)
+        self.goal = PointStamped()
+        self.goal.header.frame_id = 'world'
+
         rospy.loginfo("[%s] has started.", self.node_name)
         self.controller()
         
@@ -60,10 +68,12 @@ class ControllerNode(object):
         self.joint2_load += short_term_alpha * (msg.load - self.joint2_load)
         self.joint2_avg += long_term_alpha * (msg.load - self.joint2_avg)
 
-    def controller(self):
+    def move(self, goal):
+        point = self.goal.point
+        (point.x, point.y, point.z) = goal
+        self.move_cart(self.goal)
 
-        #Create the arm class for controlling dynamixels
-        arm = RobotDriver.Driver('arm', self.L0, self.L1, self.L2)
+    def controller(self):
 
         rate = rospy.Rate(20)
         while not rospy.is_shutdown():
@@ -72,8 +82,8 @@ class ControllerNode(object):
                 self.state = "Start"
             elif self.state == "Start":
                 rospy.loginfo("self.State: Start")
-                arm.move_joint([0.0,0.5, -2.0],2)
-                #arm.move_cartesian([0.20, 0.0, 0.11], 2)
+                self.move((-0.15, 0.1, 0.1))
+
                 self.pub_grip.publish(grip_open)
                 self.pub_wrist.publish(0)
                 rospy.sleep(1)
@@ -125,6 +135,7 @@ class ControllerNode(object):
                     rospy.loginfo("self.State: Retract")
 
             elif self.state == "Retract":
+                # TODO redo this to use the new services
                 arm.move_joint([0.0,0.25, -2.25],2)
                 self.pub_grip.publish(grip_open)
                 rospy.sleep(0.5)
