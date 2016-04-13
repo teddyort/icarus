@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from robot_driver import RobotDriver
+from robot_driver.srv import MoveCartesian
+from geometry_msgs.msg import PointStamped
 
 # Screensaver Node
 # Authors: Teddy Ort
@@ -12,21 +13,26 @@ class ScreensaverNode(object):
     def __init__(self):
         self.node_name = 'screensaver_node'
         # Setup Params
-        self.L0     = self.setupParameter("/icarus/L0",0.22) # in meters
-        self.L1     = self.setupParameter("/icarus/L1",0.22) # in meters
-        self.L2     = self.setupParameter("/icarus/L2",0.22) # in meters
-        xlim   = self.setupParameter("/icarus/workspace/x_lim", [0.05, 0.05])
-        ylim   = self.setupParameter("/icarus/workspace/y_lim",[0,0])
-        zlim   = self.setupParameter("/icarus/workspace/z_lim",[0,0])
+        xlim   = self.setupParameter("/robot_driver_node/workspace/x_lim", [0.05, 0.05])
+        ylim   = self.setupParameter("/robot_driver_node/workspace/y_lim",[0,0])
+        zlim   = self.setupParameter("/robot_driver_node/workspace/z_lim",[0,0])
         rospy.loginfo("[%s] has started", self.node_name)
 
-        arm = RobotDriver.Driver('arm', self.L0, self.L1, self.L2)
+        # Wait for service server
+        rospy.loginfo("[%s] Waiting for robot_driver move_cartesian service", self.node_name)
+        move_cart_name = "/robot_driver_node/move_cartesian"
+        rospy.wait_for_service(move_cart_name)
+
+        move_cart = rospy.ServiceProxy(move_cart_name, MoveCartesian)
+        ps = PointStamped()
+        ps.header.frame_id = "world"
         while not rospy.is_shutdown():
             # Choose a random position in the workspace
-            x = np.random.uniform(xlim[0], xlim[1])
-            y = np.random.uniform(ylim[0], ylim[1])
-            z = np.random.uniform(zlim[0], zlim[1])
-            arm.move_cartesian([x, y, z], 4)
+            ps.point.x = np.random.uniform(xlim[0], xlim[1])
+            ps.point.y = np.random.uniform(ylim[0], ylim[1])
+            ps.point.z = np.random.uniform(zlim[0], zlim[1])
+            rospy.loginfo("Going to: %s", ps.point)
+            move_cart(ps)
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
