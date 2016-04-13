@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Int8, Float32
+from std_srvs.srv import Trigger, TriggerResponse
 
 # Rula Filter Node
 # Authors: Teddy Ort
@@ -13,7 +14,10 @@ class RulaFilterNode(object):
 
         # Setup the publishers and subscribers
         self.sub_raw = rospy.Subscriber("~raw_score", Int8, self.rawCallback)
-        self.pub_filtered = rospy.Publisher("~filtered_score", Float32, queue_size=1)
+        self.pub_filtered = rospy.Publisher("~filtered_score", Float32, queue_size=10)
+
+        # Setup the service server
+        rospy.Service("~reset", Trigger, self.handle_reset)
 
         # Initialize the average
         self.sum = 0
@@ -27,6 +31,14 @@ class RulaFilterNode(object):
         msg_filtered_score = Float32()
         msg_filtered_score.data = self.sum/self.n
         self.pub_filtered.publish(msg_filtered_score)
+
+    def handle_reset(self, msg):
+        self.sum = 0
+        self.n = 0
+
+        result = TriggerResponse()
+        TriggerResponse.success = True
+        return result
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
