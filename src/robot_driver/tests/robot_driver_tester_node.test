@@ -1,0 +1,7 @@
+<launch>
+   <!-- Run the node -->
+   <include file="$(find icarus)/launch/robot_driver.launch" />
+
+   <!-- Launch robot_driver_tester_node -->
+   <test test-name="robot_driver_tester_node" pkg="robot_driver" type="robot_driver_tester_node.py" />
+</launch>
