@@ -3,6 +3,11 @@
     <!-- Launch the meta driver -->
     <include file="$(find robot_driver)/launch/meta_driver.launch" />
 
+    <!-- Launch the joint_state_publisher -->
     <remap from="/joint_state_publisher_node/motor_states" to="/motor_states/robo_port" />
     <include file="$(find robot_driver)/launch/joint_state_publisher_node.launch" />
+
+    <!-- Launch the robot_driver_node -->
+    <remap from="robot_driver_node/joint_states" to="joint_state_publisher_node/joint_states" />
+    <include file="$(find robot_driver)/launch/robot_driver_node.launch" />
 </launch>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="pkg_name" value="robot_driver" />
+    <arg name="node_name" value="robot_driver_node" />
+
+    <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen">
+        <rosparam command="load" file="$(find icarus)/configs/$(arg pkg_name)/default.yaml" />
+    </node>
+</launch>

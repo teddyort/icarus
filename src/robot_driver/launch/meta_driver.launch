@@ -23,6 +23,4 @@
                 joint3_controller
                 "
           output="screen"/>
-    <!-- Load robot link parameters -->
-    <rosparam command="load" file="$(find icarus)/configs/$(arg param_file_name).yaml" ns="icarus"/>
 </launch>
