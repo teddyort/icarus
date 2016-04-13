@@ -9,9 +9,9 @@
     <xacro:property name="base_width" value="0.04" />
     <xacro:property name="base_height" value="0.17" />
     <xacro:property name="link_radius" value="0.015" />
-    <xacro:property name="link1_length" value="0.05" />
+    <xacro:property name="link1_length" value="${0.245-base_height}" />
     <xacro:property name="link2_length" value="0.22" />
-    <xacro:property name="link3_length" value="0.22" />
+    <xacro:property name="link3_length" value="0.24" />
 
     <!-- Kinect Params -->
     <!--  <xacro:property name="cam_px" value="-1.2" />
