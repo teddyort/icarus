@@ -2,7 +2,7 @@
 import numpy as np
 
 class Learner(object):
-    def __init__(self):
+    def __init__(self, lb, ub):
         # Setup default parameters
         self.step = 0.75
         self.T = 1
@@ -10,10 +10,11 @@ class Learner(object):
         self.N = 20
         self.x = [0,0,0]
         self.fval = 4
-        self.xopt = [0,0,0]
-        self.fopt = 4
-        self.lb = [0, -0.15, -0.05]
-        self.ub = [0.26, 0.15, 0.18]
+        self.xopt = self.x
+        self.fopt = self.fval
+        self.lb = lb
+        self.ub = ub
+        self.count = 0
 
     def add_sample(self, xn, fnval):
         if self.accept(self.fval, fnval, self.T):
@@ -28,15 +29,23 @@ class Learner(object):
         self.T = self.T * self.Tred
 
     def get_next_point(self):
+        self.count += 1
+
+        # If we've cooled don't guess
+        if self.count > self.N:
+            return self.xopt
+
         # Generate a random valid point in the neighborhood
         while True:
-            lint = np.array(self.x) - self.step
-            uint = np.array(self.x) + self.step
+            lint = np.array(self.x) - (np.array(self.ub)-np.array(self.lb))*self.step/2
+            uint = np.array(self.x) + (np.array(self.ub)-np.array(self.lb))*self.step/2
             x = np.random.uniform(lint[0], uint[0])
             y = np.random.uniform(lint[1], uint[1])
             z = np.random.uniform(lint[2], uint[2])
             if self.inlim([x,y,z], self.lb, self.ub):
                 return [x,y,z]
+            else:
+                print "Couldn't use point %s, generating a new one" % [x,y,z]
 
     def accept(self, fval, fnval, T):
         return fval > fnval or self.metro(fval, fnval, T)
