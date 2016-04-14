@@ -5,6 +5,8 @@ from std_msgs.msg import Float32, Bool
 from dynamixel_msgs.msg import JointState
 from robot_driver.srv import MoveCartesian
 from geometry_msgs.msg import PointStamped
+from controller.Learner import *
+from std_srvs.srv import Trigger
 
 # Default globals
 long_term_alpha = 0.1
@@ -20,18 +22,25 @@ dispense_wait_time = 3
 solder_dispense_time = 5
 load_threshold = 0.006
 noload_threshold = 0.001
+min_rula_monitor_time = 15   # Minimum seconds to count a rula average
 
 class ControllerNode(object):
     def __init__(self):
         self.node_name = "controller_node"
         
         # Init self.state variables
-        self.state = "Init"
+        self.state = "Rula_Init"    # TODO merge the state machines
         self.temp = 0
         self.holder = True
         self.rng = 100
         self.joint2_load = 0
         self.joint2_avg = 0
+        self.rula = 0
+
+        # Setup Params
+        self.xlim   = self.setupParameter("/robot_driver_node/workspace/x_lim", [0.05, 0.05])
+        self.ylim   = self.setupParameter("/robot_driver_node/workspace/y_lim",[0,0])
+        self.zlim   = self.setupParameter("/robot_driver_node/workspace/z_lim",[0,0])
 
         # Create publishers and subscribers
         self.pub_wrist = rospy.Publisher('~wrist_cmd', Float32, queue_size=10)
@@ -41,6 +50,7 @@ class ControllerNode(object):
         self.sub_holder = rospy.Subscriber("~solder/holder", Bool, self.holder_callback)
         self.sub_range = rospy.Subscriber("~range", Float32, self.range_callback)
         self.sub_load = rospy.Subscriber("/joint2_controller/self.state", JointState, self.load_callback)
+        self.sub_rula = rospy.Subscriber("rula_filter_node/filtered_score", Float32, self.rula_callback)  # TODO move to remap
 
         # Setup the service client for move_cartesian
         # Wait for service server
@@ -51,6 +61,12 @@ class ControllerNode(object):
         self.move_cart = rospy.ServiceProxy(move_cart_name, MoveCartesian)
         self.goal = PointStamped()
         self.goal.header.frame_id = 'world'
+
+        # Setup the service client for rula reset
+        rospy.loginfo("[%s] Waiting for rula reset service", self.node_name)
+        rula_reset_name = "/rula_filter_node/reset" # TODO move to remap
+        rospy.wait_for_service(rula_reset_name)
+        self.rula_reset = rospy.ServiceProxy(rula_reset_name, Trigger)
 
         rospy.loginfo("[%s] has started.", self.node_name)
         self.controller()
@@ -67,6 +83,9 @@ class ControllerNode(object):
     def load_callback(self, msg):
         self.joint2_load += short_term_alpha * (msg.load - self.joint2_load)
         self.joint2_avg += long_term_alpha * (msg.load - self.joint2_avg)
+
+    def rula_callback(self, msg):
+        self.rula = msg.data
 
     def move(self, goal):
         point = self.goal.point
@@ -141,9 +160,37 @@ class ControllerNode(object):
                 rospy.sleep(0.5)
                 arm.move_joint([0.0, 0.55, -2.5],2)
                 self.state = "Start"
+
+            # New controller for rula search
+            if self.state == "Rula_Init":
+                self.cur_point = (-0.15, 0.1, 0.1)
+                self.learner = Learner([self.xlim[0], self.ylim[0], self.zlim[0]], [self.xlim[1], self.ylim[1], self.zlim[1]])
+                self.move(self.cur_point)
+                rospy.loginfo("Rula Initialized")
+                self.state = "Rula_Waiting"
+                rospy.loginfo("self.State: %s", self.state)
+
+            elif self.state == "Rula_Waiting":
+                if not self.holder:
+                    self.rula_start_time = rospy.Time.now()
+                    self.rula_reset()
+                    self.state = "Rula_Monitoring"
+                    rospy.loginfo("self.State: %s", self.state)
+
+            elif self.state == "Rula_Monitoring":
+                dur = rospy.Time.now() - self.rula_start_time
+                if self.holder and dur > rospy.Duration(min_rula_monitor_time):
+                    self.learner.add_sample(self.cur_point, self.rula)
+                    rospy.loginfo("Added point: %s \t Rula Score: %s", self.cur_point, self.rula)
+                    self.cur_point = self.learner.get_next_point()
+                    rospy.loginfo("Moving to point: %s", self.cur_point)
+                    self.move(self.cur_point)
+                    self.state = "Rula_Waiting"
+                    rospy.loginfo("self.State: %s", self.state)
+
             rate.sleep()
 
-    def setupParam(self,param_name,default_value):
+    def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
