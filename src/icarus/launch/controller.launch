@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Start the controller_node -->
+    <remap from="controller_node/solder/holder" to="icarus/solder/holder" />
+    <include file="$(find controller)/launch/controller_node.launch" />
+</launch>
