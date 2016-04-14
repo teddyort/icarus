@@ -90,7 +90,7 @@ class ControllerNode(object):
     def move(self, goal):
         point = self.goal.point
         (point.x, point.y, point.z) = goal
-        self.move_cart(self.goal)
+        return self.move_cart(self.goal).success
 
     def controller(self):
 
@@ -182,9 +182,13 @@ class ControllerNode(object):
                 if self.holder and dur > rospy.Duration(min_rula_monitor_time):
                     self.learner.add_sample(self.cur_point, self.rula)
                     rospy.loginfo("Added point: %s \t Rula Score: %s", self.cur_point, self.rula)
-                    self.cur_point = self.learner.get_next_point()
-                    rospy.loginfo("Moving to point: %s", self.cur_point)
-                    self.move(self.cur_point)
+                    moved = False
+                    while not moved:
+                        self.cur_point = self.learner.get_next_point()
+                        rospy.loginfo("Moving to point: %s", self.cur_point)
+                        moved = self.move(self.cur_point)
+
+
                     self.state = "Rula_Waiting"
                     rospy.loginfo("self.State: %s", self.state)
 
