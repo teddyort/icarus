@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from robot_driver import Kinematics
-from robot_driver.srv import MoveCartesian, MoveJoint
+from robot_driver.srv import *
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import PointStamped
 import tf
@@ -58,8 +58,7 @@ class RobotDriverNode(object):
         point.header.frame_id = point.header.frame_id if not point.header.frame_id == "" else "/base_link"
 
         dest = self.tf.transformPoint("/base_link", point)
-        self.move_cartesian((dest.point.x, dest.point.y, dest.point.z), self.msg_joint_state.position, self.max_vel)
-        return True
+        return self.move_cartesian((dest.point.x, dest.point.y, dest.point.z), self.msg_joint_state.position, self.max_vel)
 
     def move_joint(self, dest, state, max_v):
         # Calculate duration
@@ -72,12 +71,19 @@ class RobotDriverNode(object):
         point.positions = dest
         point.time_from_start = rospy.Duration(t)
         goal.trajectory.points.append(point)
+        rospy.loginfo("Moving to angles: %s", dest)
         self.jta.send_goal_and_wait(goal)
 
     def move_cartesian(self, pose, state, max_v):
-        angles = self.kinematics.ikin(pose)
-        self.move_joint(angles, state, max_v)
-        rospy.loginfo("Moving to angles: %s", angles)
+        rospy.loginfo("Moving to point: %s", pose)
+        try:
+            angles = self.kinematics.ikin(pose)
+            self.move_joint(angles, state, max_v)
+            return MoveCartesianResponse(True)
+        except ValueError:
+            rospy.logwarn("Inverse kineamtics failed to find a solution for the point: %s", pose)
+            return MoveCartesianResponse(False)
+
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
