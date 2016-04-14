@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <!--TODO Remapping -->
+    <!-- Start the rula_node -->
+    <include file="$(find rula)/launch/rula_node.launch" />
+
+    <!-- Start the rula_filter_node -->
+    <remap from="rula_filter_node/raw_score" to="rula_node/scores/total" />
+    <include file="$(find rula)/launch/rula_filter_node.launch" />
+</launch>
