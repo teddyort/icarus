@@ -37,7 +37,7 @@ class RulaFilterNode(object):
         self.n = 0
 
         result = TriggerResponse()
-        TriggerResponse.success = True
+        result.success = True
         return result
 
     def setupParameter(self, param_name, default_value):
