@@ -25,17 +25,31 @@ class RobotDriverTesterNode(unittest.TestCase):
     def test_robot_driver_move_joint(self):
         self.setup()
         vs = Vector3Stamped()
-        vs.vector.z = 0
+        vs.vector.z = 0.75
         move_joint = rospy.ServiceProxy(self.move_joint_name, MoveJoint)
         move_joint(vs)
 
     def test_robot_driver_move_cartesian(self):
         self.setup()
         ps = PointStamped()
-        ps.point.x = 0.2
-        ps.point.z = 0.1
+        ps.point.x = 0.05
+        ps.point.y = 0.0
+        ps.point.z = 0.0
+
         move_cart = rospy.ServiceProxy(self.move_cart_name, MoveCartesian)
-        move_cart(ps)
+        resp = move_cart(ps)
+        self.assertTrue(resp)
+
+    def test_robot_driver_move_impossible(self):
+        self.setup()
+        ps = PointStamped()
+        ps.point.x = 1.05
+        ps.point.y = 0.0
+        ps.point.z = 0.0
+
+        move_cart = rospy.ServiceProxy(self.move_cart_name, MoveCartesian)
+        resp = move_cart(ps)
+        self.assertFalse(resp.success)
 
 if __name__ == '__main__':
     rostest.rosrun('robot_driver', 'robot_driver_tester_node', RobotDriverTesterNode)
