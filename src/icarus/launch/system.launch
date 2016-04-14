@@ -4,4 +4,13 @@
 
     <!-- Skeleton -->
     <include file="$(find skeleton)/launch/show_skeleton_node.launch" />
+
+    <!-- Rula -->
+    <include file="$(find icarus)/launch/rula.launch" />
+
+    <!-- Arduino -->
+    <include file="$(find icarus)/launch/arduino.launch" />
+
+    <!-- Controller -->
+    <include file="$(find icarus)/launch/controller.launch" />
 </launch>
