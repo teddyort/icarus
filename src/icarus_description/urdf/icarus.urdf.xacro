@@ -4,6 +4,27 @@
     <xacro:property name="M_PI" value="3.14159" />
 
     <!-- Robot Params -->
+    <xacro:property name="base_xyz" value="-0.3 0 0" />
+    <xacro:property name="base_rpy" value="0 0 0"/>
+    <xacro:property name="base_width" value="0.025" />
+    <xacro:property name="base_height" value="0.13" />
+    <xacro:property name="link_radius" value="0.015" />
+    <xacro:property name="link1_length" value="${0.24-base_height}" />
+    <xacro:property name="link2_length" value="0.22" />
+    <xacro:property name="link3_length" value="0.24" />
+
+    <!-- Workspace for visualization only -->
+    <xacro:property name="xlim_l" value="-0.2"/>
+    <xacro:property name="xlim_u" value="0.05"/>
+    <xacro:property name="ylim_l" value="-0.2"/>
+    <xacro:property name="ylim_u" value="0.2"/>
+    <xacro:property name="zlim_l" value="0.05"/>
+    <xacro:property name="zlim_u" value="0.3"/>
+    <xacro:property name="xlim" value="${xlim_u-xlim_l}" />
+    <xacro:property name="ylim" value="${ylim_u-ylim_l}" />
+    <xacro:property name="zlim" value="${zlim_u-zlim_l}" />
+
+<!-- old - clamp rotated 30 deg
     <xacro:property name="base_xyz" value="-0.2794 0.2111375 0" />
     <xacro:property name="base_rpy" value="0 0 -0.523599"/>
     <xacro:property name="base_width" value="0.04" />
@@ -12,6 +33,7 @@
     <xacro:property name="link1_length" value="${0.245-base_height}" />
     <xacro:property name="link2_length" value="0.22" />
     <xacro:property name="link3_length" value="0.24" />
+-->
 
     <!-- Kinect Params -->
     <!--  <xacro:property name="cam_px" value="-1.2" />
@@ -206,6 +228,23 @@
             </geometry>
             <material name="blue">
                 <color rgba="0.15 0.15 0.67 1.0" />
+            </material>
+        </visual>
+    </link>
+
+    <joint name="world_to_workspace" type="fixed" >
+        <parent link="world"/>
+        <child link="workspace"/>
+    </joint>
+
+    <link name="workspace" >
+        <visual>
+            <origin xyz="${xlim_l+xlim/2} ${ylim_l+ylim/2} ${zlim_l+zlim/2}" />
+            <geometry>
+                <box size="${xlim} ${ylim} ${zlim}" />
+            </geometry>
+            <material name="red_trans">
+                <color rgba="1 0 0 0.3" />
             </material>
         </visual>
     </link>

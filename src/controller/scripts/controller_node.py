@@ -163,7 +163,7 @@ class ControllerNode(object):
 
             # New controller for rula search
             if self.state == "Rula_Init":
-                self.cur_point = (-0.15, 0.1, 0.1)
+                self.cur_point = (-0.1, 0, 0.1)
                 self.learner = Learner([self.xlim[0], self.ylim[0], self.zlim[0]], [self.xlim[1], self.ylim[1], self.zlim[1]])
                 self.move(self.cur_point)
                 rospy.loginfo("Rula Initialized")
