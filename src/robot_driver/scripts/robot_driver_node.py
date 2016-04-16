@@ -35,9 +35,9 @@ class RobotDriverNode(object):
         self.name = 'arm'
         self.kinematics = Kinematics.Kinematics(links['L0'], links['L1'],links['L2'])
         self.jta = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-        rospy.loginfo('Waiting for joint trajectory action')
+        rospy.loginfo("[%s] Waiting for joint trajectory action", self.node_name)
         self.jta.wait_for_server()
-        rospy.loginfo('Found joint trajectory action!')
+        rospy.loginfo("[%s] Found joint trajectory action!", self.node_name)
 
         # Start the service servers
         self.srv = rospy.Service("~move_cartesian", MoveCartesian, self.handle_move_cartesian)
@@ -58,7 +58,7 @@ class RobotDriverNode(object):
         point.header.frame_id = point.header.frame_id if not point.header.frame_id == "" else "/base_link"
 
         dest = self.tf.transformPoint("/base_link", point)
-        return self.move_cartesian((dest.point.x, dest.point.y, dest.point.z), self.msg_joint_state.position, self.max_vel)
+        return self.move_cartesian_in_base_frame((dest.point.x, dest.point.y, dest.point.z), self.msg_joint_state.position, self.max_vel)
 
     def move_joint(self, dest, state, max_v):
         # Calculate duration
@@ -71,17 +71,18 @@ class RobotDriverNode(object):
         point.positions = dest
         point.time_from_start = rospy.Duration(t)
         goal.trajectory.points.append(point)
-        rospy.loginfo("Moving to angles: %s", dest)
+        rospy.loginfo("[%s] Moving to angles: %s", self.node_name, dest)
+
         self.jta.send_goal_and_wait(goal)
 
-    def move_cartesian(self, pose, state, max_v):
-        rospy.loginfo("Moving to point: %s", pose)
+    def move_cartesian_in_base_frame(self, pose, state, max_v):
+        rospy.loginfo("[%s] Moving to point in base_link frame: %s", self.node_name, pose)
         try:
             angles = self.kinematics.ikin(pose)
             self.move_joint(angles, state, max_v)
             return MoveCartesianResponse(True)
         except ValueError:
-            rospy.logwarn("Inverse kineamtics failed to find a solution for the point: %s", pose)
+            rospy.logwarn("[%s] Inverse kineamtics failed to find a solution for the point: %s",self.node_name, pose)
             return MoveCartesianResponse(False)
 
 
