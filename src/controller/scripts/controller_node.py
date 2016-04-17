@@ -59,6 +59,7 @@ class ControllerNode(object):
         rospy.loginfo("[%s] Waiting for robot_driver move_cartesian service", self.node_name)
         move_cart_name = "/robot_driver_node/move_cartesian"
         rospy.wait_for_service(move_cart_name)
+        rospy.loginfo("[%s] Move_cartesian service found!", self.node_name)
 
         self.move_cart = rospy.ServiceProxy(move_cart_name, MoveCartesian)
         self.goal = PointStamped()
@@ -102,26 +103,26 @@ class ControllerNode(object):
                 rospy.loginfo("[%s] Controller Initialized", self.node_name)
                 self.state = "Start"
             elif self.state == "Start":
-                rospy.loginfo("[%s] self.State: Start", self.node_name)
+                rospy.loginfo("[%s] State: %s", self.node_name, self.state)
                 self.move((-0.15, 0.1, 0.1))
 
                 self.pub_grip.publish(grip_open)
                 self.pub_wrist.publish(0)
                 rospy.sleep(1)
                 self.state = "Wait for Range"
-                rospy.loginfo("[%s] self.State: Wait for Range", self.node_name)
+                rospy.loginfo("[%s] State: %s", self.node_name, self.state)
             elif self.state == "Wait for Range":
                 if self.rng < range_threshold:
                     rospy.sleep(0.75)
                     self.pub_grip.publish(grip_close)
                     self.state = "Gripped"
-                    rospy.loginfo("[%s] self.State: Gripped", self.node_name)
+                    rospy.loginfo("[%s] State: %s", self.node_name, self.state)
             elif self.state == "Gripped":
                 if not self.holder:
                     rospy.sleep(1)
                     self.pub_wrist.publish(wrist_rotate)
                     self.state = "Rotated"
-                    rospy.loginfo("[%s] self.State: Rotated", self.node_name)
+                    rospy.loginfo("[%s] State: %s", self.node_name, self.state)
             elif self.state == "Rotated":
                 if not self.temp > min_solder_temp:
                     rospy.logwarn("Solder too cold. Please turn on to proceed.")
@@ -131,7 +132,7 @@ class ControllerNode(object):
                     rospy.sleep(solder_tin_time)
                     self.pub_feeder.publish(False)
                     self.state = "Tinned"
-                    rospy.loginfo("[%s] self.State: Tinned, waiting for load", self.node_name)
+                    rospy.loginfo("[%s] State: Tinned, waiting for load", self.node_name)
             elif self.state == "Tinned":
                 # print "Delta", joint2_avg - joint2_load
                 if self.joint2_avg - self.joint2_load > load_threshold:
@@ -141,19 +142,19 @@ class ControllerNode(object):
                     rospy.sleep(solder_dispense_time)
                     self.pub_feeder.publish(False)
                     self.state = "Dispensed"
-                    rospy.loginfo("[%s] self.State: Dispensed", self.node_name)
+                    rospy.loginfo("[%s] State: %s", self.node_name, self.state)
                 elif self.holder:
                     self.state = "Retract"
-                    rospy.loginfo("[%s] self.State: Retract", self.node_name)
+                    rospy.loginfo("[%s] State: Retract", self.node_name)
 
             elif self.state == "Dispensed":
                 # print "Delta", joint2_avg - joint2_load
                 if self.joint2_avg - self.joint2_load < noload_threshold:
                     self.state = "Tinned"
-                    rospy.loginfo("[%s] self.State: Tinned", self.node_name)
+                    rospy.loginfo("[%s] State: %s", self.node_name, self.state)
                 elif self.holder:
                     self.state = "Retract"
-                    rospy.loginfo("[%s] self.State: Retract", self.node_name)
+                    rospy.loginfo("[%s] State: %s", self.node_name, self.state)
 
             elif self.state == "Retract":
                 # TODO redo this to use the new services
@@ -173,14 +174,14 @@ class ControllerNode(object):
                 self.move(self.cur_point)
                 rospy.loginfo("[%s] Rula Initialized", self.node_name)
                 self.state = "Rula_Waiting"
-                rospy.loginfo("[%s] self.State: %s", self.state, self.node_name)
+                rospy.loginfo("[%s] State: %s", self.node_name, self.state)
 
             elif self.state == "Rula_Waiting":
                 if not self.holder:
                     self.rula_start_time = rospy.Time.now()
                     self.rula_reset()
                     self.state = "Rula_Monitoring"
-                    rospy.loginfo("[%s] self.State: %s", self.state, self.node_name)
+                    rospy.loginfo("[%s] State: %s", self.node_name, self.state)
 
             elif self.state == "Rula_Monitoring":
                 dur = rospy.Time.now() - self.rula_start_time
@@ -194,7 +195,7 @@ class ControllerNode(object):
                         moved = self.move(self.cur_point)
 
                     self.state = "Rula_Waiting"
-                    rospy.loginfo("[%s] self.State: %s", self.node_name, self.state)
+                    rospy.loginfo("[%s] State: %s", self.node_name, self.state)
 
             rate.sleep()
 
