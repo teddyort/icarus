@@ -41,17 +41,18 @@ class RulaFilterNode(unittest.TestCase):
         # Publish some messages
         msg_raw = Int8()
         rate = rospy.Rate(10)
-        for i in range(5):
+        num_msgs = 6
+        for i in range(num_msgs):
             msg_raw.data = i
             self.pub_raw_score.publish(msg_raw)
             rate.sleep()
 
         # Wait for the messages to be received
         timeout = rospy.Time.now() + rospy.Duration(5)  # Wait at most 5 seconds for the node to come up
-        while self.msg_count < 5 and not rospy.is_shutdown() and rospy.Time.now() < timeout:
+        while self.msg_count < num_msgs and not rospy.is_shutdown() and rospy.Time.now() < timeout:
             rospy.sleep(0.1)
         self.assertLessEqual(rospy.Time.now(), timeout, "Test timed out while waiting for messages to be received")
-        self.assertAlmostEqual(self.msg_filtered_score.data, np.mean(range(5)))
+        self.assertAlmostEqual(self.msg_filtered_score.data, np.mean(range(num_msgs)))
 
     def test_reset_timer(self):
         self.setup()

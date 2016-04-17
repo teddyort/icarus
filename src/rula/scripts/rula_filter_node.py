@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+from __future__ import division
 import rospy
 from std_msgs.msg import Int8, Float32
 from std_srvs.srv import Trigger, TriggerResponse
+
 
 # Rula Filter Node
 # Authors: Teddy Ort
