@@ -26,10 +26,14 @@ class RobotDriverNode(object):
 
         # Setup the subscriber
         self.sub_joints = rospy.Subscriber("~joint_states", JointState, self.jointsCallback)
-        self.msg_joint_state = JointState()
+        self.msg_joint_state = None
 
         # Setup the listener
         self.tf = tf.TransformListener()
+
+        # Wait until joint states are received to advertise the services
+        while self.msg_joint_state is None and not rospy.is_shutdown():
+            rospy.sleep(0.1)
 
         # Setup the action server
         self.name = 'arm'
@@ -58,7 +62,8 @@ class RobotDriverNode(object):
         point.header.frame_id = point.header.frame_id if not point.header.frame_id == "" else "/base_link"
 
         dest = self.tf.transformPoint("/base_link", point)
-        return self.move_cartesian_in_base_frame((dest.point.x, dest.point.y, dest.point.z), self.msg_joint_state.position, self.max_vel)
+        dest = (dest.point.x, dest.point.y, dest.point.z)
+        return self.move_cartesian_in_base_frame(dest, self.msg_joint_state.position, self.max_vel)
 
     def move_joint(self, dest, state, max_v):
         # Calculate duration
@@ -81,9 +86,12 @@ class RobotDriverNode(object):
             angles = self.kinematics.ikin(pose)
             self.move_joint(angles, state, max_v)
             return MoveCartesianResponse(True)
-        except ValueError:
+        except ValueError as e:
             rospy.logwarn("[%s] Inverse kineamtics failed to find a solution for the point: %s",self.node_name, pose)
-            return MoveCartesianResponse(False)
+            rospy.logwarn("[%s] Exception Message: %s", self.node_name, e.message)
+            raise
+            #return MoveCartesianResponse(False)
+
 
 
     def setupParameter(self, param_name, default_value):
