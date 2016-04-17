@@ -50,9 +50,8 @@ class ControllerNode(object):
         self.sub_temp = rospy.Subscriber("~solder/temp", Float32, self.temp_callback)
         self.sub_holder = rospy.Subscriber("~solder/holder", Bool, self.holder_callback)
         self.sub_range = rospy.Subscriber("~range", Float32, self.range_callback)
-        self.sub_load = rospy.Subscriber("/joint2_controller/self.state", JointState, self.load_callback)
-        self.sub_rula = rospy.Subscriber("rula_filter_node/filtered_score", Float32,
-                                         self.rula_callback)  # TODO move to remap
+        self.sub_load = rospy.Subscriber("~joint2_state", JointState, self.load_callback)
+        self.sub_rula = rospy.Subscriber("~filtered_score", Float32, self.rula_callback)
 
         # Setup the service client for move_cartesian
         # Wait for service server
