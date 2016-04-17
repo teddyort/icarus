@@ -9,10 +9,11 @@ from controller.Learner import *
 from std_srvs.srv import Trigger
 
 # Default globals
+start_position = (-0.1, 0, 0.1) # The start position in world frame
 long_term_alpha = 0.1
 short_term_alpha = 0.5
 grip_close = 3.0
-grip_open = 1.8
+grip_open = 0.0
 wrist_rotate = 3.14
 range_threshold = 2.0
 min_solder_temp = 0  # 500 === DEBUG TEMP
@@ -30,7 +31,7 @@ class ControllerNode(object):
         self.node_name = "controller_node"
 
         # Init self.state variables
-        self.state = "Rula_Init"  # TODO merge the state machines
+        self.state = "Init"
         self.temp = 0
         self.holder = True
         self.rng = 100
@@ -66,9 +67,10 @@ class ControllerNode(object):
 
         # Setup the service client for rula reset
         rospy.loginfo("[%s] Waiting for rula reset service", self.node_name)
-        rula_reset_name = "/rula_filter_node/reset"  # TODO move to remap
+        rula_reset_name = "~rula_reset"
         rospy.wait_for_service(rula_reset_name)
         self.rula_reset = rospy.ServiceProxy(rula_reset_name, Trigger)
+        rospy.loginfo("[%s] Rula reset service found!", self.node_name)
 
         rospy.loginfo("[%s] has started.", self.node_name)
         self.controller()
@@ -103,15 +105,15 @@ class ControllerNode(object):
                 self.state = "Start"
             elif self.state == "Start":
                 rospy.loginfo("[%s] State: %s", self.node_name, self.state)
-                self.move((-0.15, 0.1, 0.1))
-
+                self.cur_point = start_position
+                self.move(self.cur_point)
                 self.pub_grip.publish(grip_open)
                 self.pub_wrist.publish(0)
                 rospy.sleep(1)
                 self.state = "Wait for Range"
                 rospy.loginfo("[%s] State: %s", self.node_name, self.state)
             elif self.state == "Wait for Range":
-                if self.rng < range_threshold:
+                if self.rng < range_threshold and not self.rng == 0:
                     rospy.sleep(0.75)
                     self.pub_grip.publish(grip_close)
                     self.state = "Gripped"
@@ -120,7 +122,7 @@ class ControllerNode(object):
                 if not self.holder:
                     rospy.sleep(1)
                     self.pub_wrist.publish(wrist_rotate)
-                    self.state = "Rotated"
+                    self.state = "Rula_Init"    # Here we switch over to the new net
                     rospy.loginfo("[%s] State: %s", self.node_name, self.state)
             elif self.state == "Rotated":
                 if not self.temp > min_solder_temp:
@@ -166,11 +168,9 @@ class ControllerNode(object):
 
             # New controller for rula search
             if self.state == "Rula_Init":
-                self.cur_point = (-0.1, 0, 0.1)
                 lb = [self.xlim[0], self.ylim[0], self.zlim[0]]
                 ub = [self.xlim[1], self.ylim[1], self.zlim[1]]
                 self.learner = Learner(lb, ub, self.cur_point)
-                self.move(self.cur_point)
                 rospy.loginfo("[%s] Rula Initialized", self.node_name)
                 self.state = "Rula_Waiting"
                 rospy.loginfo("[%s] State: %s", self.node_name, self.state)
