@@ -12,6 +12,7 @@ from sensor_msgs.msg import JointState
 class JointStatePublisher(object):
     def __init__(self):
         self.node_name = 'joint_state_publisher'
+        self.num_motors = self.setupParameter("robot_driver_node/num_motors", 3)
 
         # setup the publisher and subscriber
         self.sub = rospy.Subscriber("~motor_states", MotorStateList, self.motorStateCallback)
@@ -22,11 +23,14 @@ class JointStatePublisher(object):
     def motorStateCallback(self, msg_motor_states):
         msg_joint_state = JointState()
         msg_joint_state.header.stamp = rospy.Time.from_sec(msg_motor_states.motor_states[0].timestamp)
+        motors_found = 0
         for state in msg_motor_states.motor_states:
             msg_joint_state.name.append("joint" + str(state.id))
             msg_joint_state.position.append((state.position/2048.0-1.0)*np.pi)
+            motors_found += 1
 
-        self.pub.publish(msg_joint_state)
+        if motors_found == self.num_motors:
+            self.pub.publish(msg_joint_state)
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
