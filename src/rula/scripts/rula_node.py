@@ -123,7 +123,7 @@ class RulaNode():
         scores[rj.left_upper] = self.cutpoints(np.rad2deg(rula_angles[rj.left_upper]), np.array([-20, 20, 45, 90]), np.array([2, 1, 2, 3, 4]))
         scores[rj.right_lower] = self.cutpoints(np.rad2deg(rula_angles[rj.right_lower]), np.array([50, 100]), np.array([2, 1, 2]))
         scores[rj.left_lower] = self.cutpoints(np.rad2deg(rula_angles[rj.left_lower]), np.array([50, 100]), np.array([2, 1, 2]))
-        scores[rj.neck] = self.cutpoints(np.rad2deg(rula_angles[rj.neck]), np.array([0, 10, 20]), np.array([4, 1, 2, 3]))
+        scores[rj.neck] = self.cutpoints(np.rad2deg(rula_angles[rj.neck]), np.array([0, 20, 30]), np.array([4, 1, 2, 3]))
         scores[rj.trunk] = self.cutpoints(np.rad2deg(rula_angles[rj.trunk]), np.array([5, 20, 60]), np.array([1, 2, 3, 4]))
 
         tableA = np.array([[1,2,2],[2,3,3],[3,3,4],[4,4,4],[5,5,6],[7,8,9]])
