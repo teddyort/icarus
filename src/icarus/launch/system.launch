@@ -1,9 +1,11 @@
 <launch>
+    <arg name="bagout" default="/home/teddy/bags/log.bag" />
+
     <!-- Icarus Bringup-->
     <include file="$(find icarus)/launch/icarus_bringup.launch"/>
 
     <!-- Skeleton -->
-    <include file="$(find skeleton)/launch/show_skeleton_node.launch" />
+    <!--<include file="$(find skeleton)/launch/show_skeleton_node.launch" />-->
 
     <!-- Rula -->
     <include file="$(find icarus)/launch/rula.launch" />
@@ -13,4 +15,7 @@
 
     <!-- Controller -->
     <include file="$(find icarus)/launch/controller.launch" />
+
+    <!--Logging-->
+    <node  pkg="rosbag" type="record" name="rosbag_record" args="-a  -O $(arg bagout)"/>
 </launch>
