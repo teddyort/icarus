@@ -3,11 +3,10 @@ import rospy
 from robot_driver import Kinematics
 from robot_driver.srv import *
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import PointStamped
+from std_msgs.msg import Float64
 import tf
 import actionlib
-from trajectory_msgs.msg import JointTrajectoryPoint
-from control_msgs.msg import JointTrajectoryAction, JointTrajectoryGoal, FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from control_msgs.msg import FollowJointTrajectoryAction
 import numpy as np
 
 # Robot Driver Node
@@ -24,24 +23,30 @@ class RobotDriverNode(object):
         self.workspace = self.setupParameter("~workspace", {'x_lim': 0, 'y_lim': 0, 'z_lim': 0})
         self.max_vel = self.setupParameter("~max_vel", 0.5)
 
-        # Setup the subscriber
+        # Setup the subscriber and publishers
         self.sub_joints = rospy.Subscriber("~joint_states", JointState, self.jointsCallback)
-        self.msg_joint_state = None
+        self.pub_joint1 = rospy.Publisher("~joint1_cmd", Float64, queue_size=1)
+        self.pub_joint2 = rospy.Publisher("~joint2_cmd", Float64, queue_size=1)
+        self.pub_joint3 = rospy.Publisher("~joint3_cmd", Float64, queue_size=1)
 
         # Setup the listener
         self.tf = tf.TransformListener()
 
+        # Create the kinematics object
+        self.kinematics = Kinematics.Kinematics(links['L0'], links['L1'],links['L2'])
+
         # Wait until joint states are received to advertise the services
+        self.msg_joint_state = None
         while self.msg_joint_state is None and not rospy.is_shutdown():
             rospy.sleep(0.1)
 
         # Setup the action server
-        self.name = 'arm'
-        self.kinematics = Kinematics.Kinematics(links['L0'], links['L1'],links['L2'])
-        self.jta = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-        rospy.loginfo("[%s] Waiting for joint trajectory action", self.node_name)
-        self.jta.wait_for_server()
-        rospy.loginfo("[%s] Found joint trajectory action!", self.node_name)
+        # self.name = 'arm'
+        #
+        # self.jta = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+        # rospy.loginfo("[%s] Waiting for joint trajectory action", self.node_name)
+        # self.jta.wait_for_server()
+        # rospy.loginfo("[%s] Found joint trajectory action!", self.node_name)
 
         # Start the service servers
         self.srv = rospy.Service("~move_cartesian", MoveCartesian, self.handle_move_cartesian)
@@ -66,19 +71,26 @@ class RobotDriverNode(object):
         return self.move_cartesian_in_base_frame(dest, self.msg_joint_state.position, self.max_vel)
 
     def move_joint(self, dest, state, max_v):
+        rospy.loginfo("[%s] Moving to angles: %s", self.node_name, dest)
+
         # Calculate duration
         t = max(abs(np.array(dest) - np.array(state)))/max_v
 
-        # Create the trajectory
-        goal = FollowJointTrajectoryGoal()
-        goal.trajectory.joint_names = ['joint1', 'joint2', 'joint3']
-        point = JointTrajectoryPoint()
-        point.positions = dest
-        point.time_from_start = rospy.Duration(t)
-        goal.trajectory.points.append(point)
-        rospy.loginfo("[%s] Moving to angles: %s", self.node_name, dest)
+        # Direct publish method publishes joint commands on all joints (not blocking)
+        self.pub_joint1.publish(dest[0])
+        self.pub_joint2.publish(dest[1])
+        self.pub_joint3.publish(dest[2])
 
-        self.jta.send_goal_and_wait(goal)
+        # # Create the trajectory
+        # goal = FollowJointTrajectoryGoal()
+        # goal.trajectory.joint_names = ['joint1', 'joint2', 'joint3']
+        # point = JointTrajectoryPoint()
+        # point.positions = dest
+        # point.time_from_start = rospy.Duration(t)
+        # goal.trajectory.points.append(point)
+        # self.jta.send_goal_and_wait(goal)
+
+
 
     def move_cartesian_in_base_frame(self, pose, state, max_v):
         rospy.loginfo("[%s] Moving to point in base_link frame: %s", self.node_name, pose)

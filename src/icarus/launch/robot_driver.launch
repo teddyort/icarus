@@ -8,6 +8,10 @@
     <include file="$(find robot_driver)/launch/joint_state_publisher_node.launch" />
 
     <!-- Launch the robot_driver_node -->
+
     <remap from="robot_driver_node/joint_states" to="joint_state_publisher_node/joint_states" />
+    <remap from="robot_driver_node/joint1_cmd" to="/joint1_controller/command" />
+    <remap from="robot_driver_node/joint2_cmd" to="/joint2_controller/command" />
+    <remap from="robot_driver_node/joint3_cmd" to="/joint3_controller/command" />
     <include file="$(find robot_driver)/launch/robot_driver_node.launch" />
 </launch>

@@ -11,4 +11,6 @@ workspace:
 #  y_lim:  [-0.05, 0.35]
 #  z_lim:  [0.05, 0.45]
 
+num_motors: 3
+
 max_vel:  0.25     # rad/s
