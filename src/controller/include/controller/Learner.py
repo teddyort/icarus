@@ -38,12 +38,13 @@ class Learner(object):
         # Cool down
         self.T *= self.Tred
 
+        # Increment count
+        self.count += 1
+
     def get_next_point(self):
         # Check that x was set
         if self.x is None:
             raise LearnerError("get_next_point() called but initial x was not set.")
-
-        self.count += 1
 
         # If we've cooled don't guess
         if self.count > self.N:
