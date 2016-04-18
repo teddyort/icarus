@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="continue" default="false" />
+
     <!-- Start the controller_node -->
     <remap from="controller_node/wrist_cmd" to="icarus/wrist_cmd" />
     <remap from="controller_node/grip_cmd" to="icarus/grip_cmd" />
@@ -10,5 +12,7 @@
     <remap from="controller_node/joint2_state" to="/joint2_controller/state" />
     <remap from="controller_node/filtered_score" to="rula_filter_node/filtered_score" />
     <remap from="controller_node/rula_reset" to="rula_filter_node/reset" />
-    <include file="$(find controller)/launch/controller_node.launch" />
+    <include file="$(find controller)/launch/controller_node.launch">
+        <arg name="continue" value="$(arg continue)" />
+    </include>
 </launch>

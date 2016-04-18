@@ -18,7 +18,7 @@ class Learner(object):
         self.Tred = 0.9
         self.N = 20
         self.x = x0
-        self.fval = 4
+        self.fval = 20
         self.xopt = self.x
         self.fopt = self.fval
         self.ws_lb = np.array(lb)
@@ -30,9 +30,9 @@ class Learner(object):
         if self.accept(self.fval, fnval, self.T):
             # Check if this is the best point so far
             if fnval < self.fval:
-                self.xopt = np.array(xn)
+                self.xopt = xn
                 self.fopt = fnval
-            self.x = np.array(xn)
+            self.x = xn
             self.fval = fnval
 
         # Cool down
@@ -48,7 +48,7 @@ class Learner(object):
 
         # If we've cooled don't guess
         if self.count > self.N:
-            return self.xopt.tolist()
+            return self.xopt
 
         # Generate a random valid point in the neighborhood
         while True:

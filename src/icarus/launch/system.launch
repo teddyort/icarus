@@ -1,6 +1,7 @@
 <launch>
     <arg name="bagout" default="/home/teddy/bags/log.bag" />
     <arg name="log" default="false" />
+    <arg name="continue" default="false" />
 
     <!-- Icarus Bringup-->
     <include file="$(find icarus)/launch/icarus_bringup.launch"/>
@@ -15,7 +16,9 @@
     <include file="$(find icarus)/launch/arduino.launch" />
 
     <!-- Controller -->
-    <include file="$(find icarus)/launch/controller.launch" />
+    <include file="$(find icarus)/launch/controller.launch" >
+        <arg name="continue" value="$(arg continue)" />
+    </include>
 
     <!--Logging-->
     <node if="$(arg log)" pkg="rosbag" type="record" name="rosbag_record" args="-a  -O $(arg bagout)"/>
