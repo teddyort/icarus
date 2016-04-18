@@ -4,7 +4,7 @@ joint1_controller:
         module: joint_position_controller
         type: JointPositionController
     joint_name: joint1
-    joint_speed: 0.1
+    joint_speed: 0.15
     motor:
         id: 1
         init: 2047
@@ -17,7 +17,7 @@ joint2_controller:
         module: joint_position_controller
         type: JointPositionController
     joint_name: joint2
-    joint_speed: 0.1
+    joint_speed: 0.15
     motor:
         id: 2
         init: 2047
@@ -30,7 +30,7 @@ joint3_controller:
         module: joint_position_controller
         type: JointPositionController
     joint_name: joint3
-    joint_speed: 0.1
+    joint_speed: 0.15
     motor:
         id: 3
         init: 2047
