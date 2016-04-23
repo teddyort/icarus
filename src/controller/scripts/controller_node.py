@@ -214,9 +214,10 @@ class ControllerNode(object):
             elif self.state == "Rula_Monitoring":
                 dur = rospy.Time.now() - self.rula_start_time
                 if self.holder and dur > rospy.Duration(min_rula_monitor_time):
-                    self.learner.add_sample(self.cur_point, self.rula)
+                    cur_rula=self.rula
+                    self.learner.add_sample(self.cur_point, cur_rula)
                     self.dump_params()
-                    rospy.loginfo("[%s] Added point: %s \t Rula Score: %s", self.node_name, self.cur_point, self.rula)
+                    rospy.loginfo("[%s] Added point: %s \t Rula Score: %s", self.node_name, self.cur_point, cur_rula)
                     moved = False
                     while not moved:
                         self.cur_point = self.learner.get_next_point()
