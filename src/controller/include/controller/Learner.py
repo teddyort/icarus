@@ -29,7 +29,7 @@ class Learner(object):
     def add_sample(self, xn, fnval):
         if self.accept(self.fval, fnval, self.T):
             # Check if this is the best point so far
-            if fnval < self.fval:
+            if fnval < self.fopt:
                 self.xopt = xn
                 self.fopt = fnval
             self.x = xn
