@@ -13,7 +13,8 @@ class LearnerError(Exception):
 class Learner(object):
     def __init__(self, lb, ub, x0=None):
         # Setup default parameters
-        self.step = 0.75
+        self.alpha = 0.1
+        self.omega = 1.5
         self.T = 1
         self.Tred = 0.9
         self.N = 20
@@ -24,6 +25,7 @@ class Learner(object):
         self.ws_lb = np.array(lb)
         self.ws_ub = np.array(ub)
         self.ws = self.ws_ub - self.ws_lb
+        self.step=0.75*self.ws/2
         self.count = 0
 
     def add_sample(self, xn, fnval):
@@ -34,6 +36,9 @@ class Learner(object):
                 self.fopt = fnval
             self.x = xn
             self.fval = fnval
+
+            # Update the step
+            self.step = (1-self.alpha)*self.step + self.alpha*self.omega*(np.array(xn)-self.x)
 
         # Cool down
         self.T *= self.Tred
@@ -53,9 +58,8 @@ class Learner(object):
         # Generate a random valid point in the neighborhood
         while True:
             # Calculate an interval centered on x, with dimensions = step*ws
-            box = self.ws * self.step / 2
-            lint = np.max(np.vstack((self.x - box, self.ws_lb)), 0)
-            uint = np.min(np.vstack((self.x + box, self.ws_ub)), 0)
+            lint = np.max(np.vstack((self.x - self.step, self.ws_lb)), 0)
+            uint = np.min(np.vstack((self.x + self.step, self.ws_ub)), 0)
             x = np.random.uniform(lint[0], uint[0])
             y = np.random.uniform(lint[1], uint[1])
             z = np.random.uniform(lint[2], uint[2])
