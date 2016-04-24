@@ -42,10 +42,12 @@ class RulaNode():
         self.node_name = "rula_node"
         rospy.loginfo("[%s] initialized", self.node_name)
 
+        # Constants
+        self.transform_timeout = 1  # The number of seconds to wait for a transform to timeout before giving up
         # Setup publishers
         rula_angle_names = []
-        self.RulaJoints = enum("right_upper", "left_upper", "right_lower", "left_lower", "neck", "trunk")
-        self.SkeletonFrames = enum("head", "shoulder_center", "elbow_right", "elbow_left", "wrist_right", "wrist_left", "base_link")
+        self.RulaJoints = enum("right_upper", "left_upper", "right_lower", "left_lower", "neck", "trunk", "right_shoulder", "left_shoulder")
+        self.SkeletonFrames = enum("head", "shoulder_center", "elbow_right", "elbow_left", "wrist_right", "wrist_left", "base_link", "shoulder_right", "shoulder_left")
         rj = self.RulaJoints
         sf = self.SkeletonFrames
 
@@ -66,6 +68,10 @@ class RulaNode():
             for id, frame in sf.to_string.iteritems():
                 q[id] = self.getJointQuat('/skeleton_frame', frame)
 
+            # For shoulders, the relative position is used instead of relative angle
+            q[sf.shoulder_right] = self.getJointPos('/shoulder_center', 'shoulder_left')
+            q[sf.shoulder_left] = self.getJointPos('/shoulder_center', 'shoulder_right')
+
             # Go around again if transforms are missing
             if any(x is None for x in q):
                 rospy.logwarn("Transforms were missing. Waiting for transforms...")
@@ -80,6 +86,8 @@ class RulaNode():
             rula_angles[rj.left_lower] = angle_between_quats(q[sf.wrist_left], q[sf.elbow_left], (0,1,0))
             rula_angles[rj.neck] = angle_between_quats(q[sf.head], q[sf.shoulder_center], (0,1,0))
             rula_angles[rj.trunk] = angle_from_vector_to_plane(qv_mult(q[sf.head], (0,1,0)), qv_mult(q[sf.base_link], (-1,0,0)))
+            rula_angles[rj.right_shoulder] = q[sf.shoulder_right][1]
+            rula_angles[rj.left_shoulder] = q[sf.shoulder_left][1]
 
             scores = self.calcRula(rula_angles)
             # Publish joint angles and scores
@@ -108,12 +116,22 @@ class RulaNode():
     # Wait for and receive transform
     def getJointQuat(self,target, source):
         try:
-            self.listener.waitForTransform(target, source, rospy.Time(), rospy.Duration(4.0))
+            self.listener.waitForTransform(target, source, rospy.Time(), rospy.Duration(self.transform_timeout))
             q = self.listener.lookupTransform(target, source, rospy.Time())[1]
 
         except:
             q = None
         return q
+
+    # Wait for and receive transform
+    def getJointPos(self,target, source):
+        try:
+            self.listener.waitForTransform(target, source, rospy.Time(), rospy.Duration(self.transform_timeout))
+            p = self.listener.lookupTransform(target, source, rospy.Time())[0]
+
+        except:
+            p = None
+        return p
 
     # Calculate RULA score from joint angles returns an array of subscores with the total as the last element
     def calcRula(self, rula_angles):
@@ -125,9 +143,15 @@ class RulaNode():
         scores[rj.left_lower] = self.cutpoints(np.rad2deg(rula_angles[rj.left_lower]), np.array([50, 100]), np.array([2, 1, 2]))
         scores[rj.neck] = self.cutpoints(np.rad2deg(rula_angles[rj.neck]), np.array([0, 20, 30]), np.array([4, 1, 2, 3]))
         scores[rj.trunk] = self.cutpoints(np.rad2deg(rula_angles[rj.trunk]), np.array([5, 20, 60]), np.array([1, 2, 3, 4]))
+        scores[rj.right_shoulder] = self.cutpoints(rula_angles[rj.right_shoulder], np.array([-0.08]), np.array([0,1]))
+        scores[rj.left_shoulder] = self.cutpoints(rula_angles[rj.left_shoulder], np.array([-0.08]), np.array([0,1]))
 
         tableA = np.array([[1,2,2],[2,3,3],[3,3,4],[4,4,4],[5,5,6],[7,8,9]])
-        scoreA = tableA[max(scores[rj.left_upper],scores[rj.right_upper])-1, max(scores[rj.right_lower], scores[rj.left_lower])-1]
+        upper =  max(scores[rj.left_upper],scores[rj.right_upper])
+        lower = max(scores[rj.right_lower], scores[rj.left_lower])
+        upper += min(scores[rj.left_shoulder], scores[rj.right_shoulder]) #Take into account raised shoulders
+        scoreA = tableA[upper-1, lower-1]
+
 
         tableB = np.array([[1,2,3,5,6,7], [2,2,4,5,6,7], [3,3,4,5,6,7], [5,5,6,7,7,8], [7,7,7,8,8,8], [8,8,8,8,9,9]])
         scoreB = tableB[scores[rj.neck]-1, scores[rj.trunk]-1]
